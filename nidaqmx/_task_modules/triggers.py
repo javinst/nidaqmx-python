@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 
 import ctypes
 import numpy
+import weakref
+
 
 from nidaqmx._lib import lib_importer, wrapped_ndpointer, ctypes_byte_str
 from nidaqmx.system.physical_channel import PhysicalChannel
@@ -24,12 +26,19 @@ class Triggers(object):
     Represents the trigger configurations for a DAQmx task.
     """
     def __init__(self, task_handle):
-        self._handle = task_handle
-        self._arm_start_trigger = ArmStartTrigger(self._handle)
-        self._handshake_trigger = HandshakeTrigger(self._handle)
-        self._pause_trigger = PauseTrigger(self._handle)
-        self._reference_trigger = ReferenceTrigger(self._handle)
-        self._start_trigger = StartTrigger(self._handle)
+        self._handle_ = task_handle
+        self._arm_start_trigger = ArmStartTrigger(self._handle_)
+        self._handshake_trigger = HandshakeTrigger(self._handle_)
+        self._pause_trigger = PauseTrigger(self._handle_)
+        self._reference_trigger = ReferenceTrigger(self._handle_)
+        self._start_trigger = StartTrigger(self._handle_)
+
+    @property
+    def _handle(self):
+        if isinstance(self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_
 
     @property
     def arm_start_trigger(self):

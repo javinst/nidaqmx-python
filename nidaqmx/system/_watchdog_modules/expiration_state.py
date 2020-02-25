@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import ctypes
+import weakref
 
 from nidaqmx._lib import lib_importer, ctypes_byte_str
 from nidaqmx.errors import (
@@ -17,8 +18,15 @@ class ExpirationState(object):
     Represents a DAQmx Watchdog expiration state.
     """
     def __init__(self, task_handle, physical_channel):
-        self._handle = task_handle
+        self._handle_ = task_handle
         self._physical_channel = physical_channel
+
+    @property
+    def _handle(self):
+        if isinstance(self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_        
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

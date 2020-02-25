@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 import ctypes
 import six
 from collections import Sequence
+import weakref
+
 
 from nidaqmx._lib import lib_importer, ctypes_byte_str
 from nidaqmx._task_modules.channels.channel import Channel
@@ -23,8 +25,14 @@ class ChannelCollection(Sequence):
     This class defines methods that implements a container object.
     """
     def __init__(self, task_handle):
-        self._handle = task_handle
+        self._handle_ = task_handle
 
+    @property
+    def _handle(self):
+        if isinstance(self.self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_
     def __contains__(self, item):
         channel_names = self.channel_names
 

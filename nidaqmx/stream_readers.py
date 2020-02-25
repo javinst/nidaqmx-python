@@ -4,6 +4,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy
+import weakref
+
 from nidaqmx import DaqError
 
 from nidaqmx.constants import READ_ALL_AVAILABLE
@@ -33,11 +35,24 @@ class ChannelReaderBase(object):
             task_in_stream: Specifies the input stream associated with
                 an NI-DAQmx task from which to read samples.
         """
-        self._in_stream = task_in_stream
-        self._task = task_in_stream._task
-        self._handle = task_in_stream._task._handle
+        self._in_stream = weakref.ref(task_in_stream)
+        self._task_ = task_in_stream._task_
+        self._handle_ = task_in_stream._task_._handle_
 
         self._verify_array_shape = True
+
+    @property
+    def _task(self):
+        if isinstance(self._task_, weakref.ReferenceType):
+            return self._task_()
+        else:
+            return self._task_
+    @property
+    def _handle(self):
+        if isinstance(self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_
 
     @property
     def verify_array_shape(self):

@@ -16,7 +16,14 @@ class ExpirationStatesCollection(object):
     This class defines methods that implements a container object.
     """
     def __init__(self, task_handle):
-        self._handle = task_handle
+        self._handle_ = task_handle
+
+    @property
+    def _handle(self):
+        if isinstance(self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_        
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

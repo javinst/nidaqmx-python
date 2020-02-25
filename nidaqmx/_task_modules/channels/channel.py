@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import ctypes
 import numpy
+import weakref
 
 import nidaqmx
 from nidaqmx._lib import lib_importer, ctypes_byte_str, c_bool32
@@ -20,7 +21,7 @@ class Channel(object):
     """
     Represents virtual channel or a list of virtual channels.
     """
-    __slots__ = ['_handle', '_name', '__weakref__']
+    __slots__ = ['_handle_', '_name', '__weakref__']
 
     def __init__(self, task_handle, virtual_or_physical_name):
         """
@@ -30,8 +31,14 @@ class Channel(object):
             virtual_or_physical_name (str): Specifies the flattened virtual or
                 physical name of a channel.
         """
-        self._handle = task_handle
+        self._handle_ = task_handle
         self._name = virtual_or_physical_name
+    @property
+    def _handle(self):
+        if isinstance(self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_
 
     def __add__(self, other):
         if not isinstance(other, self.__class__):

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import ctypes
 import numpy
+import weakref
 
 from nidaqmx._lib import lib_importer, ctypes_byte_str, c_bool32
 from nidaqmx._task_modules.read_functions import _read_raw
@@ -25,11 +26,25 @@ class InStream(object):
     NI-DAQmx task.
     """
     def __init__(self, task):
-        self._task = task
-        self._handle = task._handle
+        self._task_ = weakref.ref(task)
+        self._handle_ = weakref.ref(task._handle)
         self._timeout = 10.0
 
         super(InStream, self).__init__()
+
+    @property
+    def _task(self):
+        if isinstance(self._task_, weakref.ReferenceType):
+            return self._task_()
+        else:
+            return self._task_
+    @property
+    def _handle(self):
+        if isinstance(self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_
+    
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import ctypes
 import numpy
+import weakref
 
 from nidaqmx._lib import (
     lib_importer, wrapped_ndpointer, ctypes_byte_str, c_bool32)
@@ -20,7 +21,14 @@ class ArmStartTrigger(object):
     Represents the arm start trigger configurations for a DAQmx task.
     """
     def __init__(self, task_handle):
-        self._handle = task_handle
+        self._handle_ = task_handle
+
+    @property
+    def _handle(self):
+        if isinstance(self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_        
 
     @property
     def dig_edge_dig_fltr_enable(self):

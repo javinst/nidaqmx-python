@@ -4,6 +4,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import numpy
+import weakref
 from nidaqmx import DaqError
 from nidaqmx._task_modules.write_functions import (
     _write_analog_f_64, _write_analog_scalar_f_64, _write_binary_i_16,
@@ -48,12 +49,32 @@ class ChannelWriterBase(object):
                 value is True; conversely, if you use a many sample 
                 write method, the value is False.
         """
-        self._out_stream = task_out_stream
-        self._task = task_out_stream._task
-        self._handle = task_out_stream._task._handle
+        self._out_stream_ = weakref.ref(task_out_stream)
+        self._task_ = task_out_stream._task_
+        self._handle_ = task_out_stream._task._handle
 
         self._verify_array_shape = True
         self._auto_start = auto_start
+
+    @property
+    def _out_stream(self):
+        if isinstance(self._out_stream_, weakref.ReferenceType):
+            return self._out_stream_()
+        else:
+            return self._out_stream_
+    @property
+    def _task(self):
+        if isinstance(self._task_, weakref.ReferenceType):
+            return self._task_()
+        else:
+            return self._task_
+    @property
+    def _handle(self):
+        if isinstance(self._handle_, weakref.ReferenceType):
+            return self._handle_()
+        else:
+            return self._handle_
+
 
     @property
     def auto_start(self):

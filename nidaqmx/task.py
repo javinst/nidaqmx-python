@@ -7,6 +7,7 @@ import ctypes
 import numpy
 import six
 import warnings
+import weakref
 
 from nidaqmx._lib import lib_importer, ctypes_byte_str, c_bool32
 from nidaqmx._task_modules.channels.channel import Channel
@@ -373,17 +374,18 @@ class Task(object):
         # Saved name is used in self.close() to throw graceful error on
         # double closes.
         self._saved_name = self.name
-
-        self._ai_channels = AIChannelCollection(task_handle)
-        self._ao_channels = AOChannelCollection(task_handle)
-        self._ci_channels = CIChannelCollection(task_handle)
-        self._co_channels = COChannelCollection(task_handle)
-        self._di_channels = DIChannelCollection(task_handle)
-        self._do_channels = DOChannelCollection(task_handle)
-        self._export_signals = ExportSignals(task_handle)
+        # Avoid reference cycle with weak references
+        self._handle_=weakref.ref(task_handle)
+        self._ai_channels = AIChannelCollection(self._handle_)
+        self._ao_channels = AOChannelCollection(self._handle_)
+        self._ci_channels = CIChannelCollection(self._handle_)
+        self._co_channels = COChannelCollection(self._handle_)
+        self._di_channels = DIChannelCollection(self._handle_)
+        self._do_channels = DOChannelCollection(self._handle_)
+        self._export_signals = ExportSignals(self._handle_)
         self._in_stream = InStream(self)
-        self._timing = Timing(task_handle)
-        self._triggers = Triggers(task_handle)
+        self._timing = Timing(self._handle_)
+        self._triggers = Triggers(self._handle_)
         self._out_stream = OutStream(self)
 
         # These lists keep C callback objects in memory as ctypes doesn't.
